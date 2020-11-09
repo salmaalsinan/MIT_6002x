@@ -1,0 +1,834 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sun Nov  3 21:26:20 2019
+
+@author: salmaalsinan
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+A = np.random.normal(40, 3, 1000)
+B = np.random.normal(10, 3, 1000)
+plt.hist(A, bins=10)
+plt.hist(B, bins=10)
+plt.show()
+
+results = []
+
+for _ in range(50):
+differences = []
+    for run in range(100):
+        A = np.random.normal(40, 3, 1000)
+        B = np.random.normal(10, 5, 1000)
+
+        hist_A = plt.hist(A, bins=10)
+        hist_B = plt.hist(B, bins=10)
+
+        differences.append(hist_A[0][-1] - hist_B[0][-1])
+        # print("difference between A and B")
+        # print(hist_A[0][-1] - hist_B[0][-1])
+
+# plt.show()
+print("-----")
+print(np.mean(differences))
+results.append(np.mean(differences))
+
+print("-----")
+print(np.mean(results))
+
+plt.hist(results)
+plt.show()
+
+#---------------------#
+
+import random, pylab
+xVals = []
+yVals = []
+wVals = []
+for i in range(1000):
+    xVals.append(random.random())
+    yVals.append(random.random())
+    wVals.append(random.random())
+xVals = pylab.array(xVals)
+yVals = pylab.array(yVals)
+wVals = pylab.array(wVals)
+xVals = xVals + xVals
+zVals = xVals + yVals
+tVals = xVals + yVals + wVals
+
+pylab.figure(1)
+pylab.plot(tVals)
+pylab.show()
+
+pylab.figure(2)
+pylab.plot(xVals)
+pylab.show()
+
+pylab.figure(3)
+pylab.plot(xVals, zVals)
+pylab.show()
+
+pylab.figure(4)
+pylab.plot(xVals, yVals)
+pylab.show()
+
+pylab.figure(5)
+pylab.plot(xVals, sorted(yVals))
+pylab.show()
+
+pylab.figure(6)
+pylab.plot(sorted(xVals), yVals)
+pylab.show()
+
+pylab.figure(7)
+pylab.plot(sorted(xVals), sorted(yVals))
+pylab.show()
+
+#-----------------------------3
+
+import pylab
+
+class Location(object):
+    def __init__(self, x, y):
+        """x and y are floats"""
+        self.x = x
+        self.y = y
+        
+    def move(self, deltaX, deltaY):
+        """deltaX and deltaY are floats"""
+        return Location(self.x + deltaX, self.y + deltaY)
+    
+    def getX(self):
+        return self.x
+    
+    def getY(self):
+        return self.y
+    
+    def distFrom(self, other):
+        ox = other.x
+        oy = other.y
+        xDist = self.x - ox
+        yDist = self.y - oy
+        return (xDist**2 + yDist**2)**0.5
+    
+    def __str__(self):
+        return '<' + str(self.x) + ', ' + str(self.y) + '>'
+
+class Field(object):
+    def __init__(self):
+        self.drunks = {}
+        
+    def addDrunk(self, drunk, loc):
+        if drunk in self.drunks:
+            raise ValueError('Duplicate drunk')
+        else:
+            self.drunks[drunk] = loc
+            
+    def moveDrunk(self, drunk):
+        if not drunk in self.drunks:
+            raise ValueError('Drunk not in field')
+        xDist, yDist = drunk.takeStep()
+        currentLocation = self.drunks[drunk]
+        #use move method of Location to get new location
+        self.drunks[drunk] = currentLocation.move(xDist, yDist)
+        
+    def getLoc(self, drunk):
+        if not drunk in self.drunks:
+            raise ValueError('Drunk not in field')
+        return self.drunks[drunk]
+
+
+import random
+import math
+
+class Drunk(object):
+    def __init__(self, name):
+        self.name = name
+    def __str__(self):
+        return 'This drunk is named ' + self.name
+
+def walkVector(f, d, numSteps):
+    start = f.getLoc(d)
+    for s in range(numSteps):
+        f.moveDrunk(d)
+    return(f.getLoc(d).getX() - start.getX(),
+           f.getLoc(d).getY() - start.getY())
+
+class UsualDrunk(Drunk):
+    def takeStep(self):
+        stepChoices =\
+            [(0.0,1.0), (0.0,-1.0), (1.0, 0.0), (-1.0, 0.0)]
+        return random.choice(stepChoices)
+
+class ColdDrunk(Drunk):
+    def takeStep(self):
+        stepChoices =\
+            [(0.0,0.9), (0.0,-1.03), (1.03, 0.0), (-1.03, 0.0)]
+        return random.choice(stepChoices)
+
+class EDrunk(Drunk):
+    def takeStep(self):
+        ang = 2 * math.pi * random.random()
+        length = 0.5 + 0.5 * random.random()
+        return (length * math.sin(ang), length * math.cos(ang))
+
+class PhotoDrunk(Drunk):
+    def takeStep(self):
+        stepChoices =\
+                    [(0.0, 0.5),(0.0, -0.5),
+                     (1.5, 0.0),(-1.5, 0.0)]
+        return random.choice(stepChoices)
+
+class DDrunk(Drunk):
+    def takeStep(self):
+        stepChoices =\
+                    [(0.85, 0.85), (-0.85, -0.85),
+                     (-0.56, 0.56), (0.56, -0.56)] 
+        return random.choice(stepChoices)
+
+def drunkTestP(numTrials=500):
+    # steps = [10, 100, 1000, 10000]
+    steps = 1000
+    # for dClass in (UsualDrunk, ColdDrunk, EDrunk, DDrunk, PhotoDrunk):
+    for dClass in [EDrunk, UsualDrunk]:
+        drunk = dClass('john doe')
+        origin = Location(0,0)
+        distancesX = []
+        distancesY = []
+        for trial in range(numTrials):
+            field = Field()
+            field.addDrunk(drunk, origin)
+            distance = walkVector(field, drunk, steps)
+            distancesX.append(distance[0])        
+            distancesY.append(distance[1])        
+        pylab.plot(distancesX, distancesY,
+                   label=dClass.__name__)
+        pylab.xlabel('west - east')
+        pylab.ylabel('north - south')
+        pylab.legend(loc='upper left')
+    pylab.show()
+
+drunkTestP()
+
+#-----------------#
+
+import random
+
+def drawing_without_replacement_sim(numTrials):
+    '''
+    Runs numTrials trials of a Monte Carlo simulation
+    of drawing 3 balls out of a bucket containing
+    4 red and 4 green balls. Balls are not replaced once
+    drawn. Returns a float - the fraction of times 3 
+    balls of the same color were drawn in the first 3 draws.
+    '''
+    same_color_count = 0
+    for trial in range(numTrials):
+        bucket = ['red', 'red', 'red', 'red', 'gr', 'gr', 'gr', 'gr']
+        balls = []
+        for draw in range(3):
+            ball = random.choice(bucket)
+            bucket.remove(ball)
+            balls.append(ball)
+        if balls[0] == balls[1] == balls[2]:
+            same_color_count += 1
+    # return same_color_count * 1.0 / numTrials
+    return same_color_count
+
+# test
+print("1000 trials:")
+print(drawing_without_replacement_sim(1000))
+print(drawing_without_replacement_sim(1000))
+print(drawing_without_replacement_sim(1000))
+print("100 trials:")
+print(drawing_without_replacement_sim(100))
+print(drawing_without_replacement_sim(100))
+print(drawing_without_replacement_sim(100))
+
+#-----------------#
+#multiple choice
+https://github.com/anarayanan86/MITx-6.00.2x/blob/master/Quiz/Problem_1.md
+
+https://github.com/anarayanan86/MITx-6.00.2x/blob/master/Quiz/Problem_6.md
+
+https://github.com/anarayanan86/MITx-6.00.2x/blob/master/Final%20Exam/Problem_1.md
+
+https://github.com/anarayanan86/MITx-6.00.2x/blob/master/Final%20Exam/Problem_2.md
+
+https://github.com/anarayanan86/MITx-6.00.2x/blob/master/Final%20Exam/Problem_5.md
+
+https://github.com/anarayanan86/MITx-6.00.2x/blob/master/Final%20Exam/Problem_7.md
+
+https://github.com/anarayanan86/MITx-6.00.2x/blob/master/Final%20Exam/Problem_8_Part_B.md
+
+
+#------------------#
+
+def song_playlist(songs, max_size):
+    """
+    songs: list of tuples, ('song_name', song_len, song_size)
+    max_size: float, maximum size of total songs that you can fit
+    Start with the song first in the 'songs' list, then pick the next 
+    song to be the one with the lowest file size not already picked, repeat
+    Returns: a list of a subset of songs fitting in 'max_size' in the order 
+             in which they were chosen.
+    """
+    playlist = []
+    if songs[0][2] <= max_size:
+        playlist.append(songs[0][0])
+    else:
+        return playlist
+    song_list_copy_ascending = sorted(songs, key = lambda x: x[2])
+    song_list_copy_ascending.remove(songs[0])
+    space_remain = max_size - songs[0][2]
+    for i in song_list_copy_ascending:
+        if i[2] <= space_remain:
+            playlist.append(i[0])
+            space_remain -= i[2]
+        else:
+            break
+    return playlist
+    
+
+#------------------------#
+def greedySum(L, s):
+    """ input: s, positive integer, what the sum should add up to
+               L, list of unique positive integers sorted in descending order
+        Use the greedy approach where you find the largest multiplier for 
+        the largest value in L then for the second largest, and so on to 
+        solve the equation s = L[0]*m_0 + L[1]*m_1 + ... + L[n-1]*m_(n-1)
+        return: the sum of the multipliers or "no solution" if greedy approach does 
+                not yield a set of multipliers such that the equation sums to 's'
+    """
+    multipliers = []
+    remain = s
+    for i in L:
+        if i <= remain:
+            mult = remain // i
+            multipliers.append(mult)
+            remain -= i * mult
+        else:
+            multipliers.append(0)
+    sum1 = 0
+    for j in range(len(multipliers)):
+        sum1 += L[j]*multipliers[j]
+    if sum1 == s:
+        return sum(multipliers)
+    else:
+        return 'no solution'
+    
+#----------------#
+def max_contig_sum(L):
+    """ L, a list of integers, at least one positive
+    Returns the maximum sum of a contiguous subsequence in L """
+    #YOUR CODE HERE
+    
+    max_ending_here = max_so_far = L[0]
+    for i in L[1:]:
+        max_ending_here = max(i, max_ending_here + i)
+        max_so_far = max(max_so_far, max_ending_here)
+    return max_so_far
+
+#---------------#
+
+nodes = []
+for i in range(n):
+    nodes.append(newNode(i)) # newNode takes one parameter, the number of the node
+
+# A helper method, addEdge, is referenced in this problem. The addEdge method takes two integers - representing nodes in the graph - and
+# adds a directed edge from the first node to the second node. So, addEdge(8, 2) adds a directed edge from Node 8 to Node 2.
+
+# In each code piece below, a graph is generated using the above node set by adding edges in some fashion. Your job is to examine the
+# code and select the type of graph that will be generated. Your choices for each question will be: tree; graph (undirected graph); line
+# graph; digraph (directed graph); complete graph or clique; bar graph; bipartite graph; loop or connected chain of nodes. Note that
+# this last option refers to a graph that consists of one single, large loop or connected chain of nodes.
+
+for i in range(len(nodes)):
+	x = random.choice(nodes)
+	y = random.choice(nodes)
+	addEdge(x,y)
+	
+# digraph (directed graph) correct
+
+
+# Problem 7-2
+# 2.0/2.0 points (graded)
+
+for i in range(len(nodes)):
+	x = random.choice(nodes)
+	y = random.choice(nodes)
+	addEdge(x,y)
+	addEdge(y,x)
+	
+# graph (undirected graph) correct
+
+
+# Problem 7-3
+# 0.0/2.0 points (graded)
+
+for i in range(len(nodes)):
+	w = random.choice(nodes)
+	x = random.choice(nodes)
+	y = random.choice(nodes)
+	z = random.choice(nodes)
+	addEdge(w,x)
+	addEdge(x,y)
+	addEdge(y,z)
+	addEdge(z,w)
+	
+# loop or connected chain of nodes incorrect
+
+
+# Problem 7-4
+# 2.0/2.0 points (graded)
+
+for x in nodes:
+	for y in nodes:
+		addEdge(x,y)
+		addEdge(y,x)
+	
+# complete graph or clique correct
+
+
+# Problem 7-5
+# 2.0/2.0 points (graded)
+# The out degree of a node is the number of its neighbors, i.e. for a node x, its degree is the number edges, of the form (x, y_i),
+# where y_i is some other node.
+# Which graph has the largest out degree per node?
+
+# complete graph or clique correct
+    
+#--------------#
+        
+import random
+
+# Paste your code here
+def drawing_without_replacement_sim(numTrials):
+    '''
+    Runs numTrials trials of a Monte Carlo simulation
+    of drawing 3 balls out of a bucket containing
+    4 red and 4 green balls. Balls are not replaced once
+    drawn. Returns a float - the fraction of times 3 
+    balls of the same color were drawn in the first 3 draws.
+    '''
+    # Your code here
+    counter = 0
+    for i in range(numTrials):
+        bucket = ['R', 'R', 'R', 'R', 'G', 'G', 'G', 'G']
+        picks = []
+        for j in range(3):
+            k = random.choice(bucket)
+            picks.append(k)
+            bucket.remove(k)
+        if picks[0] == picks[1] == picks[2]:
+            counter += 1
+    return counter/numTrials                    
+    
+#0------------#
+def makeHistogram(values, numBins, xLabel, yLabel, title=None):
+    """
+      - values, a list of numbers
+      - numBins, a positive int
+      - xLabel, yLabel, title, are strings
+      - Produces a histogram of values with numBins bins and the indicated labels
+        for the x and y axes
+      - If title is provided by caller, puts that title on the figure and otherwise
+        does not title the figure
+    """
+
+# Paste your entire function (including the definition) in the box.
+
+# Restrictions:
+# Do not paste import pylab in the box.
+# You should only be using the pylab.hist, pylab.title, pylab.xlabel, pylab.ylabel, pylab.show functions from the pylab module.
+# Do not leave any debugging print statements when you paste your code in the box.
+
+
+# Paste your code here
+def makeHistogram(values, numBins, xLabel, yLabel, title=None):
+    """
+      - values, a list of numbers
+      - numBins, a positive int
+      - xLabel, yLabel, title, are strings
+      - Produces a histogram of values with numBins bins and the indicated labels
+        for the x and y axes
+      - If title is provided by caller, puts that title on the figure and otherwise
+        does not title the figure
+    """
+    pylab.hist(values, bins = numBins)
+    pylab.xlabel(xLabel)
+    pylab.ylabel(yLabel)
+    if title != None:
+        pylab.title(title)
+    pylab.show()
+    
+#------------------------
+ def getAverage(die, numRolls, numTrials):
+    """
+      - die, a Die
+      - numRolls, numTrials, are positive ints
+      - Calculates the expected mean value of the longest run of a number
+        over numTrials runs of numRolls rolls.
+      - Calls makeHistogram to produce a histogram of the longest runs for all
+        the trials. There should be 10 bins in the histogram
+      - Choose appropriate labels for the x and y axes.
+      - Returns the mean calculated to 3 decimal places
+    """
+
+# A run of numbers counts the number of times the same dice value shows up in consecutive rolls. For example:
+# a dice roll of 1 4 3 has a longest run of 1
+# a dice roll of 1 3 3 2 has a longest run of 2
+# a dice roll of 5 4 4 4 5 5 2 5 has a longest run of 3
+
+# When this function is called with the test case given in the file, it will return 5.312. Your simulation may give slightly different
+# values.
+
+# Paste your entire function (including the definition) in the box.
+
+# Restrictions:
+# Do not import or use functions or methods from pylab, numpy, or matplotlib.
+# Do not leave any debugging print statements when you paste your code in the box.
+# If you do not see the return value being printed when testing your function, close the histogram window.
+
+
+# Paste your code here
+def getAverage(die, numRolls, numTrials):
+    """
+      - die, a Die
+      - numRolls, numTrials, are positive ints
+      - Calculates the expected mean value of the longest run of a number
+        over numTrials runs of numRolls rolls
+      - Calls makeHistogram to produce a histogram of the longest runs for all
+        the trials. There should be 10 bins in the histogram
+      - Choose appropriate labels for the x and y axes.
+      - Returns the mean calculated to 3 decimal places
+    """
+    # TODO
+    longest_runs = []
+    for i in range(numTrials):
+        rolls = [die.roll() for j in range(numRolls)]
+        size = 1
+        max_size = 0
+        for i in range(len(rolls)-1):
+            if rolls[i+1] == rolls[i]:
+                size += 1
+            else: 
+                size = 1
+            if max_size < size:
+                max_size = size
+        if max_size > 0:
+            longest_runs.append(max_size)
+        else:
+            longest_runs.append(1)
+    makeHistogram(longest_runs, numBins = 10, xLabel = 'Length of longest run', yLabel = 'frequency', title = 'Histogram of longest runs')
+    return sum(longest_runs)/len(longest_runs)
+
+#------------------#
+    
+def find_combination(choices, total):
+    """
+    choices: a non-empty list of ints
+    total: a positive int
+ 
+    Returns result, a numpy.array of length len(choices) 
+    such that
+        * each element of result is 0 or 1
+        * sum(result*choices) == total
+        * sum(result) is as small as possible
+    In case of ties, returns any result that works.
+    If there is no result that gives the exact total, 
+    pick the one that gives sum(result*choices) closest 
+    to total without going over.
+    """
+    
+# Paste your entire function (including the definition) in the box. Note: If you want to use numpy arrays, you should import numpy as np
+# and use np.METHOD_NAME in your code. Unfortunately, pylab does not work with the grader.
+
+
+import numpy as np
+import itertools
+
+def find_combination(choices, total):
+    """
+    choices: a non-empty list of ints
+    total: a positive int
+ 
+    Returns result, a numpy.array of length len(choices) 
+    such that
+        * each element of result is 0 or 1
+        * sum(result*choices) == total
+        * sum(result) is as small as possible
+    In case of ties, returns any result that works.
+    If there is no result that gives the exact total, 
+    pick the one that gives sum(result*choices) closest 
+    to total without going over.
+    """
+    power_set = []
+    for i in itertools.product([1,0], repeat = len(choices)):
+        power_set.append(np.array(i))
+    filter_set_eq = []
+    filter_set_less = []
+    for j in power_set:
+        if sum(j*choices) == total:
+            filter_set_eq.append(j)
+        elif sum(j*choices) < total:
+            filter_set_less.append(j)
+    if len(filter_set_eq) > 0:
+        minidx = min(enumerate(filter_set_eq), key=lambda x:sum(x[1]))[1]
+        return minidx
+    else:
+        minidx = max(enumerate(filter_set_less), key = lambda x:sum(x[1]))[1]
+        return minidx
+    
+#----------------
+        
+def rabbitGrowth():
+    """ 
+    rabbitGrowth is called once at the beginning of each time step.
+    It makes use of the global variables: CURRENTRABBITPOP and MAXRABBITPOP.
+    The global variable CURRENTRABBITPOP is modified by this procedure.
+    For each rabbit, based on the probabilities in the problem set write-up, 
+      a new rabbit may be born.
+    Nothing is returned.
+    """
+    # you need this line for modifying global variables
+    global CURRENTRABBITPOP
+
+    # TO DO
+    #pass
+    for i in range(CURRENTRABBITPOP):
+        if random.random() <= (1 - (CURRENTRABBITPOP/MAXRABBITPOP)):
+            CURRENTRABBITPOP += 1
+            
+def foxGrowth():
+    """ 
+    foxGrowth is called once at the end of each time step.
+    It makes use of the global variables: CURRENTFOXPOP and CURRENTRABBITPOP,
+        and both may be modified by this procedure.
+    Each fox, based on the probabilities in the problem statement, may eat 
+      one rabbit (but only if there are more than 10 rabbits).
+    If it eats a rabbit, then with a 1/3 prob it gives birth to a new fox.
+    If it does not eat a rabbit, then with a 1/10 prob it dies.
+    Nothing is returned.
+    """
+    # you need these lines for modifying global variables
+    global CURRENTRABBITPOP
+    global CURRENTFOXPOP
+
+    # TO DO
+    #pass
+    for i in range(CURRENTFOXPOP):
+        if CURRENTRABBITPOP > 10:
+            if random.random() <= (CURRENTRABBITPOP/MAXRABBITPOP):
+                CURRENTRABBITPOP -= 1
+                # fox reproducing
+                if random.random() <= (1/3):
+                    CURRENTFOXPOP += 1
+        else:
+            # fox dying
+            if random.random() <= 0.1:
+                CURRENTFOXPOP -= 1
+            
+def runSimulation(numSteps):
+    """
+    Runs the simulation for `numSteps` time steps.
+    Returns a tuple of two lists: (rabbit_populations, fox_populations)
+      where rabbit_populations is a record of the rabbit population at the 
+      END of each time step, and fox_populations is a record of the fox population
+      at the END of each time step.
+    Both lists should be `numSteps` items long.
+    """
+
+    # TO DO
+    #pass
+    rabbits = []
+    foxes = []
+    for i in range(numSteps):
+        rabbitGrowth()
+        foxGrowth()
+        rabbits.append(CURRENTRABBITPOP)
+        foxes.append(CURRENTFOXPOP)
+    return rabbits, foxes
+
+
+#------------#
+
+import random, pylab
+
+# You are given this function
+def getMeanAndStd(X):
+    mean = sum(X)/float(len(X))
+    tot = 0.0
+    for x in X:
+        tot += (x - mean)**2
+    std = (tot/len(X))**0.5
+    return mean, std
+
+# You are given this class
+class Die(object):
+    def __init__(self, valList):
+        """ valList is not empty """
+        self.possibleVals = valList[:]
+    def roll(self):
+        return random.choice(self.possibleVals)
+
+# Implement this -- Coding Part 1 of 2
+def makeHistogram(values, numBins, xLabel, yLabel, title=None):
+    """
+      - values, a sequence of numbers
+      - numBins, a positive int
+      - xLabel, yLabel, title, are strings
+      - Produces a histogram of values with numBins bins and the indicated labels
+        for the x and y axis
+      - If title is provided by caller, puts that title on the figure and otherwise
+        does not title the figure
+    """
+    # TODO
+    pylab.hist(values, bins = numBins)
+    pylab.xlabel(xLabel)
+    pylab.ylabel(yLabel)
+    if title != None:
+        pylab.title(title)
+    pylab.show()
+    
+                    
+# Implement this -- Coding Part 2 of 2
+def getAverage(die, numRolls, numTrials):
+    """
+      - die, a Die
+      - numRolls, numTrials, are positive ints
+      - Calculates the expected mean value of the longest run of a number
+        over numTrials runs of numRolls rolls
+      - Calls makeHistogram to produce a histogram of the longest runs for all
+        the trials. There should be 10 bins in the histogram
+      - Choose appropriate labels for the x and y axes.
+      - Returns the mean calculated to 3 decimal places
+    """
+    # TODO
+    longest_runs = []
+    for i in range(numTrials):
+        rolls = [die.roll() for j in range(numRolls)]
+        size = 1
+        max_size = 0
+        for i in range(len(rolls)-1):
+            if rolls[i+1] == rolls[i]:
+                size += 1
+            else: 
+                size = 1
+            if max_size < size:
+                max_size = size
+        if max_size > 0:
+            longest_runs.append(max_size)
+        else:
+            longest_runs.append(1)
+    makeHistogram(longest_runs, numBins = 10, xLabel = 'Length of longest run', yLabel = 'frequency', title = 'Histogram of longest runs')
+    return sum(longest_runs)/len(longest_runs)
+        
+    
+# One test case
+print(getAverage(Die([1,2,3,4,5,6,6,6,7]), 500, 10000))
+print(getAverage(Die([1,2,3,4,5,6]), 50, 1000))
+print(getAverage(Die([1,2,3,4,5,6,6,6,7]), 1, 1000))
+
+#-----------------#
+import random
+import pylab
+
+# Global Variables
+MAXRABBITPOP = 1000
+CURRENTRABBITPOP = 500
+CURRENTFOXPOP = 30
+
+def rabbitGrowth():
+    """ 
+    rabbitGrowth is called once at the beginning of each time step.
+    It makes use of the global variables: CURRENTRABBITPOP and MAXRABBITPOP.
+    The global variable CURRENTRABBITPOP is modified by this procedure.
+    For each rabbit, based on the probabilities in the problem set write-up, 
+      a new rabbit may be born.
+    Nothing is returned.
+    """
+    # you need this line for modifying global variables
+    global CURRENTRABBITPOP
+
+    # TO DO
+    #pass
+    for i in range(CURRENTRABBITPOP):
+        if random.random() <= (1 - (CURRENTRABBITPOP/MAXRABBITPOP)):
+            CURRENTRABBITPOP += 1
+            
+def foxGrowth():
+    """ 
+    foxGrowth is called once at the end of each time step.
+    It makes use of the global variables: CURRENTFOXPOP and CURRENTRABBITPOP,
+        and both may be modified by this procedure.
+    Each fox, based on the probabilities in the problem statement, may eat 
+      one rabbit (but only if there are more than 10 rabbits).
+    If it eats a rabbit, then with a 1/3 prob it gives birth to a new fox.
+    If it does not eat a rabbit, then with a 1/10 prob it dies.
+    Nothing is returned.
+    """
+    # you need these lines for modifying global variables
+    global CURRENTRABBITPOP
+    global CURRENTFOXPOP
+
+    # TO DO
+    #pass
+    for i in range(CURRENTFOXPOP):
+        if CURRENTRABBITPOP > 10:
+            if random.random() <= (CURRENTRABBITPOP/MAXRABBITPOP):
+                CURRENTRABBITPOP -= 1
+                # fox reproducing
+                if random.random() <= (1/3):
+                    CURRENTFOXPOP += 1
+        else:
+            # fox dying
+            if random.random() <= 0.9:
+                CURRENTFOXPOP -= 1
+            
+def runSimulation(numSteps):
+    """
+    Runs the simulation for `numSteps` time steps.
+    Returns a tuple of two lists: (rabbit_populations, fox_populations)
+      where rabbit_populations is a record of the rabbit population at the 
+      END of each time step, and fox_populations is a record of the fox population
+      at the END of each time step.
+    Both lists should be `numSteps` items long.
+    """
+
+    # TO DO
+    #pass
+    rabbits = []
+    foxes = []
+    for i in range(numSteps):
+        rabbitGrowth()
+        foxGrowth()
+        rabbits.append(CURRENTRABBITPOP)
+        foxes.append(CURRENTFOXPOP)
+    return rabbits, foxes
+
+print(runSimulation(200))
+
+# Plotting for Problem 8 Part B
+def plotSimulation(numSteps):
+    rabbits = []
+    foxes = []
+    for i in range(numSteps):
+        rabbitGrowth()
+        foxGrowth()
+        rabbits.append(CURRENTRABBITPOP)
+        foxes.append(CURRENTFOXPOP)
+    pylab.plot(range(numSteps), rabbits, label = 'rabbits')
+    rabbit_coeff = pylab.polyfit(range(numSteps), rabbits, 2)
+    pylab.plot(pylab.polyval(rabbit_coeff, range(numSteps)))
+    pylab.plot(range(numSteps), foxes, label = 'foxes')
+    fox_coeff = pylab.polyfit(range(numSteps), foxes, 2)
+    pylab.plot(pylab.polyval(fox_coeff, range(numSteps)))
+    pylab.show()
+    
+plotSimulation(200)
+
+
+
